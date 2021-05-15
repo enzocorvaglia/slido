@@ -26,7 +26,10 @@ function slido_func( $atts ) {
 		'limite'  => 50,
 		'image_size'  => 'thumbnail',	
 		'object_fit' => 'contain',
-		'seamless' => '1'
+		'seamless' => '1',
+		'slido_id' => '0',
+		'slido_speed' => '400',
+		'slido_fade' => 'false'
 
 	), $atts );	
 
@@ -42,6 +45,9 @@ function slido_func( $atts ) {
 	$image_size = $a['image_size'];	
 	$object_fit = $a['object_fit'];	
 	$seamless = $a['seamless'];	
+	$slido_id = $a['slido_id'];	
+	$slido_speed = $a['slido_speed'];	
+	$slido_fade = $a['slido_fade'];	
 	
 	
 	switch ($template) {
@@ -124,7 +130,9 @@ function slido_func( $atts ) {
 		if ($colonne == 4) { echo '<style> .slido-columns-4{padding:0.5%; width:24%} </style>'; }
 		if ($colonne == 5) { echo '<style> .slido-columns-5{padding:0.5%; width:19%} </style>'; }
 		if ($colonne == 6) { echo '<style> .slido-columns-6{padding:0.3%; width:16%} </style>'; }		
-	
+
+		$fetched_posts = [];
+		$posts_for_slide = $colonne*$righe; //massimo nunero di posts che vengono visualizzati ad ogni slide			
 	
 		// The Query
 			$query = new WP_Query(  array ( 
@@ -143,17 +151,12 @@ function slido_func( $atts ) {
 									)
 							) );
 			// The Loop
-	
-			$fetched_posts = [];
 
-			$posts_for_slide = $colonne*$righe; //massimo nunero di posts che vengono visualizzati ad ogni slide		
-
-	if ( $query->have_posts() ) {
+			if ( $query->have_posts() ) {
 				while ( $query->have_posts() ) {
 					$query->the_post(); 
 					$fetched_posts[] = get_the_ID();
 				}
-
 			} else {
 				// no posts found
 			}
@@ -182,7 +185,7 @@ function slido_func( $atts ) {
 			$posts_to_show = $seamless == "1" ? $fetched_posts_normalized : $fetched_posts;			
 			?>
 			<div class="slido-body slido-body-<?php echo $template; ?>">
-				<div class="slido-container">
+				<div class="slido-container_<?php echo $slido_id ?>">
 					<?php		
 
 
@@ -231,9 +234,39 @@ function slido_func( $atts ) {
 		}else{
 			echo '<div class = "no-slido-post"> Nessun elemento trovato per SLIDO </div>';
 		}
+
+			
+	/********************************
+	slider inizio
+	***********************************/
+	?>
+	<script>
+	jQuery(document).ready(function(){
+		jQuery('.slido-container_<?php echo $slido_id ?>').slick({
+			pauseOnFocus: false,	
+			slidesToShow: 1,
+			slidesToScroll: 1,
+			autoplay: true,
+			autoplaySpeed: 3000,			
+			infinite: true,
+			arrows: false,
+			dots: true,
+			fade: <?php echo $slido_fade ?>,
+			speed: <?php echo $slido_speed ?>,
+
+		});
+	jQuery( ".slido-flex-box" ).show();	
+	jQuery( ".slido-body" ).show();	
+	jQuery(".slido-flex-box").hover(function(){jQuery(".slido-title_2").css("opacity", "1");} , function(){jQuery(".slido-title_2").css("opacity", "0");});
+	});
+	</script> 	
+	<?php
+/********************************
+slider FINE
+***********************************/
 			
 	
-/****************************************************************************/	
+		/****************************************************************************/	
 		$result = ob_get_contents(); // get everything in to $result variable
 		ob_end_clean(); 
 	
@@ -243,7 +276,7 @@ function slido_func( $atts ) {
 
 
 
-add_action( 'generate_after_footer_widgets','lancia_slido' );   
+//add_action( 'generate_after_footer_widgets','lancia_slido' );   
 
 function lancia_slido() {  
 	
